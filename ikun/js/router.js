@@ -1,25 +1,50 @@
-const route = (event) => {
-  event = event || window.event;
-  event.preventDefault();
-  window.history.pushState({}, "", event.target.href);
-  handleLocation();
-};
-
+const pageTitle = "JS Single Page Application Router";
+// create an object that maps the url to the template, title, and description
 const routes = {
-  404: "/pages/404.html",
-  "/": "/pages/index.html",
-  "/gallery1": "/pages/gallery1.html",
-  "/gallery2": "/pages/gallery2.html",
+  404: {
+    template: "/templates/404.html",
+    title: "404 | " + pageTitle,
+    description: "Page not found",
+  },
+  "/": {
+    template: "index.html",
+    title: "Home | " + pageTitle,
+    description: "This is the home page",
+  },
+  about: {
+    template: "gallery1.html",
+    title: "About Us | " + pageTitle,
+    description: "This is the about page",
+  },
+  contact: {
+    template: "gallery2.html",
+    title: "Contact Us | " + pageTitle,
+    description: "This is the contact page",
+  },
 };
 
-const handleLocation = async () => {
-  const path = window.location.pathname;
-  const route = routes[path] || routes[404];
-  const html = await fetch(route).then((data) => data.text());
-  document.getElementById("main-page").innerHTML = html;
+// create a function that watches the url and calls the urlLocationHandler
+const locationHandler = async () => {
+  // get the url path, replace hash with empty string
+  var location = window.location.hash.replace("#", "");
+  // if the path length is 0, set it to primary page route
+  if (location.length == 0) {
+    location = "/";
+  }
+  // get the route object from the routes object
+  const route = routes[location] || routes["404"];
+  // get the html from the template
+  const html = await fetch(route.template).then((response) => response.text());
+  // set the content of the content div to the html
+  document.getElementById("content").innerHTML = html;
+  // set the title of the document to the title of the route
+  document.title = route.title;
+  // set the description of the document to the description of the route
+  document
+    .querySelector('meta[name="description"]')
+    .setAttribute("content", route.description);
 };
-
-window.onpopstate = handleLocation;
-window.route = route;
-
-handleLocation();
+// create a function that watches the hash and calls the urlLocationHandler
+window.addEventListener("hashchange", locationHandler);
+// call the urlLocationHandler to load the page
+locationHandler();
