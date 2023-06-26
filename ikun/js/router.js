@@ -1,38 +1,57 @@
-const pageTitle = "JS Single Page Application Router";
+const urlPageTitle = "JS Single Page Application Router";
+
+// create document click that watches the nav links only
+document.addEventListener("click", (e) => {
+  const { target } = e;
+  if (!target.matches("nav a")) {
+    return;
+  }
+  e.preventDefault();
+  urlRoute();
+});
+
 // create an object that maps the url to the template, title, and description
-const routes = {
+const urlRoutes = {
   404: {
     template: "/templates/404.html",
-    title: "404 | " + pageTitle,
+    title: "404 | " + urlPageTitle,
     description: "Page not found",
   },
   "/": {
-    template: "index.html",
-    title: "Home | " + pageTitle,
+    template: "/index.html",
+    title: "Home | " + urlPageTitle,
     description: "This is the home page",
   },
-  about: {
-    template: "gallery1.html",
-    title: "About Us | " + pageTitle,
+  "/about": {
+    template: "/templates/gallery1.html",
+    title: "About Us | " + urlPageTitle,
     description: "This is the about page",
   },
-  contact: {
-    template: "gallery2.html",
-    title: "Contact Us | " + pageTitle,
+  "/contact": {
+    template: "/templates/gallery2.html",
+    title: "Contact Us | " + urlPageTitle,
     description: "This is the contact page",
   },
 };
 
 // create a function that watches the url and calls the urlLocationHandler
-const locationHandler = async () => {
-  // get the url path, replace hash with empty string
-  var location = window.location.hash.replace("#", "");
+const urlRoute = (event) => {
+  event = event || window.event; // get window.event if event argument not provided
+  event.preventDefault();
+  // window.history.pushState(state, unused, target link);
+  window.history.pushState({}, "", event.target.href);
+  urlLocationHandler();
+};
+
+// create a function that handles the url location
+const urlLocationHandler = async () => {
+  const location = window.location.pathname; // get the url path
   // if the path length is 0, set it to primary page route
   if (location.length == 0) {
     location = "/";
   }
-  // get the route object from the routes object
-  const route = routes[location] || routes["404"];
+  // get the route object from the urlRoutes object
+  const route = urlRoutes[location] || urlRoutes["404"];
   // get the html from the template
   const html = await fetch(route.template).then((response) => response.text());
   // set the content of the content div to the html
@@ -44,7 +63,10 @@ const locationHandler = async () => {
     .querySelector('meta[name="description"]')
     .setAttribute("content", route.description);
 };
-// create a function that watches the hash and calls the urlLocationHandler
-window.addEventListener("hashchange", locationHandler);
-// call the urlLocationHandler to load the page
-locationHandler();
+
+// add an event listener to the window that watches for url changes
+window.onpopstate = urlLocationHandler;
+// call the urlLocationHandler function to handle the initial url
+window.route = urlRoute;
+// call the urlLocationHandler function to handle the initial url
+urlLocationHandler();
